@@ -28,7 +28,8 @@
   "homepage": "https://github.com/itwalton/jwt-node#readme",
   "dependencies": {
     "base64url": "^3.0.1",
-    "lodash": "^4.17.21"
+    "lodash": "^4.17.21",
+    "moment": "^2.29.1"
   },
   "devDependencies": {
     "@types/base64url": "^2.0.0",
