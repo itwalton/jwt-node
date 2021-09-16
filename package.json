@@ -9,6 +9,8 @@
     "start:dev": "tsc --watch",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "lint:md": "markdownlint '**/*.md'",
+    "lint:all": "concurrently \"npm run lint\" \"npm run lint:md\"",
     "prepare": "husky install"
   },
   "repository": {
@@ -31,17 +33,19 @@
     "@types/lodash": "^4.14.170",
     "@typescript-eslint/eslint-plugin": "^4.31.1",
     "@typescript-eslint/parser": "^4.31.1",
+    "concurrently": "^6.2.1",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-lodash": "^7.3.0",
     "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-react": "^7.25.1",
     "eslint-plugin-security": "^1.4.0",
+    "husky": "^6.0.0",
     "jest": "^27.0.6",
+    "markdownlint-cli": "^0.28.1",
     "prettier": "^2.4.0",
     "rimraf": "^3.0.2",
     "ts-jest": "^27.0.3",
-    "typescript": "^4.3.5",
-    "husky": "^6.0.0"
+    "typescript": "^4.3.5"
   }
 }
