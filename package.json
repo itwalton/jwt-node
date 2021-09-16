@@ -1,6 +1,6 @@
 {
   "name": "@itwalton/jwt-node",
-  "version": "1.0.1",
+  "version": "1.0.5",
   "description": "Issue and verify access tokens in Node",
   "main": "dist",
   "scripts": {
