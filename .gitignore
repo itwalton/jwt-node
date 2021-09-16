@@ -1,0 +1,8 @@
+# Deps
+node_modules/
+
+# TypeScript
+dist/
+
+# Tests
+coverage/
