@@ -15,7 +15,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/itwalton/brewgaloo.git"
+    "url": "git+ssh://git@github.com/itwalton/jwt-node.git"
   },
   "author": "Ian Walton",
   "license": "MIT",
