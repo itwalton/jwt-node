@@ -3,5 +3,5 @@ module.exports = {
   testEnvironment: 'node',
   verbose: true,
   collectCoverage: true,
-  testPathIgnorePatterns: ['dist/', 'node_modules/']
-};
+  testPathIgnorePatterns: ['dist/', 'node_modules/'],
+}

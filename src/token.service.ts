@@ -15,7 +15,7 @@ export class TokenService {
     private readonly audience: string[],
     private readonly algorithm: 'SHA256',
     publicKeyPEMBuffer: Buffer,
-    privateKeyPEMBuffer: Buffer,
+    privateKeyPEMBuffer: Buffer
   ) {
     this.publicKey = crypto.createPublicKey(publicKeyPEMBuffer)
     this.privateKey = crypto.createPrivateKey(privateKeyPEMBuffer)
@@ -23,7 +23,7 @@ export class TokenService {
 
   async issueAccessToken(
     subject: string,
-    expiresOn: Date = moment().add(15, 'minutes').toDate(),
+    expiresOn: Date = moment().add(15, 'minutes').toDate()
   ): Promise<{ expiresOn: Date; accessToken: string }> {
     const now = new Date()
 
@@ -48,12 +48,18 @@ export class TokenService {
 
     return {
       expiresOn,
-      accessToken: pipe(map(base64url.encode), join(DELIMITER))([header, payload, signature]),
+      accessToken: pipe(
+        map(base64url.encode),
+        join(DELIMITER)
+      )([header, payload, signature]),
     }
   }
 
   async validateAccessToken(accessToken: string): Promise<boolean> {
-    const [, payloadBuffer, signatureBuffer] = pipe(split(DELIMITER), map(base64url.toBuffer))(accessToken)
+    const [, payloadBuffer, signatureBuffer] = pipe(
+      split(DELIMITER),
+      map(base64url.toBuffer)
+    )(accessToken)
 
     const { exp } = JSON.parse(payloadBuffer.toString())
     const isTokenWithinExpirationWindow = moment(exp).isAfter(moment())
@@ -63,8 +69,11 @@ export class TokenService {
       crypto.verify(
         this.algorithm,
         payloadBuffer,
-        { key: this.publicKey, padding: crypto.constants.RSA_PKCS1_PSS_PADDING },
-        signatureBuffer,
+        {
+          key: this.publicKey,
+          padding: crypto.constants.RSA_PKCS1_PSS_PADDING,
+        },
+        signatureBuffer
       )
     )
   }

@@ -6,7 +6,9 @@
   "scripts": {
     "test": "jest",
     "build": "rimraf dist && tsc",
-    "start:dev": "tsc --watch"
+    "start:dev": "tsc --watch",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
   "repository": {
     "type": "git",
@@ -26,7 +28,16 @@
     "@types/base64url": "^2.0.0",
     "@types/jest": "^26.0.23",
     "@types/lodash": "^4.14.170",
+    "@typescript-eslint/eslint-plugin": "^4.31.1",
+    "@typescript-eslint/parser": "^4.31.1",
+    "eslint": "^7.32.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-lodash": "^7.3.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "eslint-plugin-react": "^7.25.1",
+    "eslint-plugin-security": "^1.4.0",
     "jest": "^27.0.6",
+    "prettier": "^2.4.0",
     "rimraf": "^3.0.2",
     "ts-jest": "^27.0.3",
     "typescript": "^4.3.5"
