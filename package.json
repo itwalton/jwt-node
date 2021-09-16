@@ -13,6 +13,9 @@
     "lint:all": "concurrently \"npm run lint\" \"npm run lint:md\"",
     "prepare": "husky install"
   },
+  "publishConfig": {
+    "@itwalton:registry": "https://npm.pkg.github.com"
+  },
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/itwalton/jwt-node.git"
