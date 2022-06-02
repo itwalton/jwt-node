@@ -52,7 +52,7 @@ describe('TokenService', () => {
 
       const payload = JSON.parse(base64url.decode(accessToken.split(DELIMITER)[1])) as AccessTokenPayload
       
-      expect(Object.keys(payload)).toStrictEqual(['iss', 'aud', 'sub', 'exp', 'nbf', 'iat'])
+      expect(Object.keys(payload)).toStrictEqual(['jti', 'iss', 'aud', 'sub', 'exp', 'nbf', 'iat'])
       expect(payload.iss).toBe('foo issuer')
       expect(payload.aud).toEqual(['example.com'])
       expect(payload.sub).toBe('foo subj')
@@ -130,7 +130,7 @@ describe('TokenService', () => {
 
       const payload = tokenService.extractPayload(accessToken)
 
-      expect(Object.keys(payload)).toStrictEqual(['iss', 'aud', 'sub', 'exp', 'nbf', 'iat'])
+      expect(Object.keys(payload)).toStrictEqual(['jti', 'iss', 'aud', 'sub', 'exp', 'nbf', 'iat'])
       expect(payload.iss).toBe('foo issuer')
       expect(payload.aud).toEqual(['example.com'])
       expect(payload.sub).toBe('foo subj')

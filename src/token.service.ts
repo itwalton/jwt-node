@@ -1,6 +1,7 @@
 import base64url from 'base64url'
 import { add, isAfter } from 'date-fns'
 import crypto, { type KeyObject } from 'crypto'
+import { v4 as uuidv4 } from 'uuid'
 
 import { AccessTokenPayload } from './access-token.model'
 
@@ -34,23 +35,29 @@ export class TokenService {
       alg: 'RS256',
     })
 
-    const payload = JSON.stringify({
+    const payload: AccessTokenPayload = {
+      jti: uuidv4(),
       iss: this.issuer,
       aud: this.audience,
       sub: subject,
       exp: expiresOn.getTime(),
       nbf: now, // notBefore
       iat: now, // issuedAt
-    })
+    }
 
-    const signature = crypto.sign(this.algorithm, Buffer.from(payload), {
-      key: this.privateKey,
-      padding: crypto.constants.RSA_PKCS1_PSS_PADDING,
-    })
+    const stringifiedPayload = JSON.stringify(payload)
+    const signature = crypto.sign(
+      this.algorithm,
+      Buffer.from(stringifiedPayload),
+      {
+        key: this.privateKey,
+        padding: crypto.constants.RSA_PKCS1_PSS_PADDING,
+      }
+    )
 
     return {
       expiresOn,
-      accessToken: [header, payload, signature]
+      accessToken: [header, stringifiedPayload, signature]
         .map((part) => base64url.encode(part))
         .join(DELIMITER),
     }
