@@ -1,6 +1,6 @@
-import moment from 'moment'
 import crypto from 'crypto'
 import base64url from 'base64url'
+import { add, isAfter } from 'date-fns'
 import type { KeyObject } from 'crypto'
 import { isEqual, pipe, split, join, map, size } from 'lodash/fp'
 
@@ -23,7 +23,9 @@ export class TokenService {
 
   async issueAccessToken(
     subject: string,
-    expiresOn: Date = moment().add(15, 'minutes').toDate()
+    expiresOn: Date = add(new Date(), {
+      minutes: 15,
+    })
   ): Promise<{ expiresOn: Date; accessToken: string }> {
     const now = new Date()
 
@@ -61,8 +63,8 @@ export class TokenService {
       map(base64url.toBuffer)
     )(accessToken)
 
-    const { exp } = JSON.parse(payloadBuffer.toString())
-    const isTokenWithinExpirationWindow = moment(exp).isAfter(moment())
+    const { exp } = JSON.parse(payloadBuffer.toString()) as { exp: number }
+    const isTokenWithinExpirationWindow = isAfter(exp, new Date())
 
     return (
       isTokenWithinExpirationWindow &&

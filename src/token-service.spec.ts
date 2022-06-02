@@ -1,6 +1,11 @@
-import moment from 'moment'
 import crypto from 'crypto'
 import base64url from 'base64url'
+import {
+  add,
+  isAfter,
+  isBefore,
+  sub,
+} from 'date-fns'
 import { pipe, split, nth, size, map, every, isString } from 'lodash/fp'
 
 import { TokenService } from './token.service'
@@ -37,7 +42,7 @@ describe('TokenService', () => {
       })
     })
 
-    it('has a payload', async () => {
+    it.only('has a payload', async () => {
       const tokenService = new TokenService('foo issuer', ['example.com'], 'SHA256', publicKey, privateKey)
 
       const { accessToken } = await tokenService.issueAccessToken('foo subj')
@@ -46,15 +51,23 @@ describe('TokenService', () => {
       expect(payload.iss).toBe('foo issuer')
       expect(payload.aud).toEqual(['example.com'])
       expect(payload.sub).toBe('foo subj')
+      const now = new Date()
+      const exp = new Date(payload.exp)
+      const nbf = new Date(payload.nbf)
+      const iat = new Date(payload.iat)
       expect(
-        moment().add(14, 'minutes').isBefore(payload.exp) && moment().add(16, 'minutes').isAfter(payload.exp),
+        isBefore(exp, add(now, { minutes: 16 })) && isAfter(exp, add(now, { minutes: 14 }))
       ).toBe(true)
-      expect(moment().subtract(1, 'minutes').isBefore(payload.nbf) && moment().isAfter(payload.nbf)).toBe(true)
-      expect(moment().subtract(1, 'minutes').isBefore(payload.iat) && moment().isAfter(payload.iat)).toBe(true)
+      expect(
+        isBefore(nbf, now) && isAfter(nbf, sub(now, { minutes: 1 }))
+      ).toBe(true)
+      expect(
+        isBefore(iat, now) && isAfter(iat, sub(now, { minutes: 1 }))
+      ).toBe(true)
     })
 
     it('has a payload with custom expiration', async () => {
-      const customExpiresOn = moment().add(1, 'day').toDate()
+      const customExpiresOn = add(new Date(), { days: 1 })
       const tokenService = new TokenService('foo issuer', ['example.com'], 'SHA256', publicKey, privateKey)
 
       const { accessToken, expiresOn } = await tokenService.issueAccessToken('foo subj', customExpiresOn)
@@ -84,7 +97,7 @@ describe('TokenService', () => {
   describe('.validateAccessToken', () => {
     it('is false if past exp', async () => {
       const tokenService = new TokenService('foo issuer', ['example.com'], 'SHA256', publicKey, privateKey)
-      const { accessToken } = await tokenService.issueAccessToken('foo subj', moment().subtract(1, 'minute').toDate())
+      const { accessToken } = await tokenService.issueAccessToken('foo subj', sub(new Date(), { minutes: 1 }))
 
       expect(await tokenService.validateAccessToken(accessToken)).toBe(false)
     })
