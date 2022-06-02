@@ -1,7 +1,6 @@
-import crypto from 'crypto'
+import crypto, { type KeyObject } from 'crypto'
 import base64url from 'base64url'
 import { add, isAfter } from 'date-fns'
-import type { KeyObject } from 'crypto'
 import { isEqual, pipe, split, join, map, size } from 'lodash/fp'
 
 const DELIMITER = '.'
