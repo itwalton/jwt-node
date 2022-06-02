@@ -6,7 +6,6 @@ import {
   isBefore,
   sub,
 } from 'date-fns'
-import { pipe, split, nth, size, map, every, isString } from 'lodash/fp'
 
 import { TokenService } from './token.service'
 
@@ -26,8 +25,9 @@ describe('TokenService', () => {
 
       const { accessToken } = await tokenService.issueAccessToken('foo subj')
 
-      expect(pipe(split('.'), size)(accessToken)).toEqual(3)
-      expect(pipe(split('.'), every(isString))(accessToken)).toBe(true)
+      const accessTokenParts = accessToken.split('.')
+      expect(accessTokenParts).toHaveLength(3)
+      expect(accessTokenParts.every((part) => typeof part === 'string')).toBe(true)
     })
 
     it('has a header', async () => {
@@ -35,19 +35,19 @@ describe('TokenService', () => {
 
       const { accessToken } = await tokenService.issueAccessToken('foo subj')
 
-      const header = pipe(split('.'), nth(0), base64url.decode, JSON.parse)(accessToken)
+      const header = JSON.parse(base64url.decode(accessToken.split('.')[0]))
       expect(header).toEqual({
         typ: 'JWT',
         alg: 'RS256',
       })
     })
 
-    it.only('has a payload', async () => {
+    it('has a payload', async () => {
       const tokenService = new TokenService('foo issuer', ['example.com'], 'SHA256', publicKey, privateKey)
 
       const { accessToken } = await tokenService.issueAccessToken('foo subj')
 
-      const payload = pipe(split('.'), nth(1), base64url.decode, JSON.parse)(accessToken)
+      const payload = JSON.parse(base64url.decode(accessToken.split('.')[1]))
       expect(payload.iss).toBe('foo issuer')
       expect(payload.aud).toEqual(['example.com'])
       expect(payload.sub).toBe('foo subj')
@@ -56,13 +56,13 @@ describe('TokenService', () => {
       const nbf = new Date(payload.nbf)
       const iat = new Date(payload.iat)
       expect(
-        isBefore(exp, add(now, { minutes: 16 })) && isAfter(exp, add(now, { minutes: 14 }))
+        isBefore(exp, add(now, { minutes: 16 })) && isAfter(exp, add(now, { minutes: 14, seconds: 59 }))
       ).toBe(true)
       expect(
-        isBefore(nbf, now) && isAfter(nbf, sub(now, { minutes: 1 }))
+        isBefore(nbf, add(now, { seconds: 1 })) && isAfter(nbf, sub(now, { seconds: 1 }))
       ).toBe(true)
       expect(
-        isBefore(iat, now) && isAfter(iat, sub(now, { minutes: 1 }))
+        isBefore(iat, add(now, { seconds: 1 })) && isAfter(iat, sub(now, { seconds: 1 }))
       ).toBe(true)
     })
 
@@ -72,7 +72,7 @@ describe('TokenService', () => {
 
       const { accessToken, expiresOn } = await tokenService.issueAccessToken('foo subj', customExpiresOn)
 
-      const payload = pipe(split('.'), nth(1), base64url.decode, JSON.parse)(accessToken)
+      const payload = JSON.parse(base64url.decode(accessToken.split('.')[1]))
       expect(customExpiresOn).toBe(expiresOn)
       expect(payload.exp).toBe(customExpiresOn.getTime())
     })
@@ -82,7 +82,7 @@ describe('TokenService', () => {
 
       const { accessToken } = await tokenService.issueAccessToken('foo subj')
 
-      const [, payload, signature] = pipe(split('.'), map(base64url.toBuffer))(accessToken)
+      const [, payload, signature] = accessToken.split('.').map(base64url.toBuffer)
       expect(
         crypto.verify(
           'SHA256',
