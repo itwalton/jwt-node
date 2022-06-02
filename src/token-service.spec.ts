@@ -61,11 +61,55 @@ describe('TokenService', () => {
       expect(isDateEqual(new Date(payload.iat), now)).toBe(true)
     })
 
+    it('has a payload with custom claims', async () => {
+      const customClaims = {
+        a: '1',
+        n: 999,
+        b: ['2', '3', '4', '5'],
+      }
+      const tokenService = new TokenService('foo issuer', ['example.com'], 'SHA256', publicKey, privateKey)
+
+      const { accessToken } = await tokenService.issueAccessToken('foo subj', {
+        customClaims,
+      })
+
+      const payload = tokenService.extractPayload(accessToken) as AccessTokenPayload & Record<string, unknown>
+      expect(payload.a).toBe('1')
+      expect(payload.n).toBe(999)
+      expect(payload.b).toStrictEqual(['2', '3', '4', '5'])
+    })
+
+    it('prevents custom claims from overwritting required claims', async () => {
+      const customClaims = {
+        jti: 'invalid jti',
+        iss: 'invalid iss',
+        aud: 'invalid aud',
+        sub: 'invalid sub',
+        exp: 'invalid exp',
+        nbf: 'invalid nbf',
+        iat: 'invalid iat',
+      }
+      const tokenService = new TokenService('foo issuer', ['example.com'], 'SHA256', publicKey, privateKey)
+
+      const { accessToken } = await tokenService.issueAccessToken('foo subj', {
+        customClaims,
+      })
+
+      const payload = tokenService.extractPayload(accessToken)
+      expect(payload.jti).not.toBe('invalid jti')
+      expect(payload.iss).not.toBe('invalid iss')
+      expect(payload.aud).not.toBe('invalid aud')
+      expect(payload.sub).not.toBe('invalid sub')
+      expect(payload.exp).not.toBe('invalid exp')
+      expect(payload.nbf).not.toBe('invalid nbf')
+      expect(payload.iat).not.toBe('invalid iat')
+    })
+
     it('has a payload with custom expiration', async () => {
       const customExpiresOn = add(new Date(), { days: 1 })
       const tokenService = new TokenService('foo issuer', ['example.com'], 'SHA256', publicKey, privateKey)
 
-      const { accessToken, expiresOn } = await tokenService.issueAccessToken('foo subj', customExpiresOn)
+      const { accessToken, expiresOn } = await tokenService.issueAccessToken('foo subj', { expiresOn: customExpiresOn })
 
       const payload = JSON.parse(base64url.decode(accessToken.split(DELIMITER)[1]))
       expect(customExpiresOn).toBe(expiresOn)
@@ -92,7 +136,7 @@ describe('TokenService', () => {
   describe('.validateAccessToken', () => {
     it('is false if past exp', async () => {
       const tokenService = new TokenService('foo issuer', ['example.com'], 'SHA256', publicKey, privateKey)
-      const { accessToken } = await tokenService.issueAccessToken('foo subj', sub(new Date(), { minutes: 1 }))
+      const { accessToken } = await tokenService.issueAccessToken('foo subj', { expiresOn: sub(new Date(), { minutes: 1 }) })
 
       expect(await tokenService.validateAccessToken(accessToken)).toBe(false)
     })

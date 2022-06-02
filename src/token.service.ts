@@ -7,6 +7,11 @@ import { AccessTokenPayload } from './access-token.model'
 
 export const DELIMITER = '.'
 
+export type IssueAccessTokenOptions = {
+  customClaims?: Record<string, unknown>
+  expiresOn?: Date
+}
+
 export class TokenService {
   private readonly publicKey: KeyObject
   private readonly privateKey: KeyObject
@@ -24,10 +29,11 @@ export class TokenService {
 
   async issueAccessToken(
     subject: string,
-    expiresOn: Date = add(new Date(), {
-      minutes: 15,
-    })
+    options: IssueAccessTokenOptions = {}
   ): Promise<{ expiresOn: Date; accessToken: string }> {
+    const { customClaims = {}, expiresOn = add(new Date(), { minutes: 15 }) } =
+      options
+
     const now = new Date()
 
     const header = JSON.stringify({
@@ -36,6 +42,8 @@ export class TokenService {
     })
 
     const payload: AccessTokenPayload = {
+      ...customClaims,
+
       jti: uuidv4(),
       iss: this.issuer,
       aud: this.audience,
