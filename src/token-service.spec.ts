@@ -8,6 +8,9 @@ import {
 } from 'date-fns'
 
 import { DELIMITER, TokenService } from './token.service'
+import { AccessTokenPayload } from 'access-token.model'
+
+const isDateEqual = (date: Date, targetDate: Date): boolean => isBefore(date, add(targetDate, { seconds: 1 })) && isAfter(date, sub(targetDate, { seconds: 1 }))
 
 describe('TokenService', () => {
   let publicKey: Buffer
@@ -43,27 +46,19 @@ describe('TokenService', () => {
     })
 
     it('has a payload', async () => {
+      const now = new Date()
       const tokenService = new TokenService('foo issuer', ['example.com'], 'SHA256', publicKey, privateKey)
-
       const { accessToken } = await tokenService.issueAccessToken('foo subj')
 
-      const payload = JSON.parse(base64url.decode(accessToken.split(DELIMITER)[1]))
+      const payload = JSON.parse(base64url.decode(accessToken.split(DELIMITER)[1])) as AccessTokenPayload
+      
+      expect(Object.keys(payload)).toStrictEqual(['iss', 'aud', 'sub', 'exp', 'nbf', 'iat'])
       expect(payload.iss).toBe('foo issuer')
       expect(payload.aud).toEqual(['example.com'])
       expect(payload.sub).toBe('foo subj')
-      const now = new Date()
-      const exp = new Date(payload.exp)
-      const nbf = new Date(payload.nbf)
-      const iat = new Date(payload.iat)
-      expect(
-        isBefore(exp, add(now, { minutes: 16 })) && isAfter(exp, add(now, { minutes: 14, seconds: 59 }))
-      ).toBe(true)
-      expect(
-        isBefore(nbf, add(now, { seconds: 1 })) && isAfter(nbf, sub(now, { seconds: 1 }))
-      ).toBe(true)
-      expect(
-        isBefore(iat, add(now, { seconds: 1 })) && isAfter(iat, sub(now, { seconds: 1 }))
-      ).toBe(true)
+      expect(isDateEqual(new Date(payload.exp), add(now, { minutes: 15 }))).toBe(true)
+      expect(isDateEqual(new Date(payload.nbf), now)).toBe(true)
+      expect(isDateEqual(new Date(payload.iat), now)).toBe(true)
     })
 
     it('has a payload with custom expiration', async () => {
@@ -119,13 +114,39 @@ describe('TokenService', () => {
     })
   })
 
-  describe('.getSubjectFromAccessToken', () => {
+  describe('.extractPayload', () => {
     it('ensures token has three period-delimited parts', async () => {
       const tokenService = new TokenService('foo issuer', ['example.com'], 'SHA256', publicKey, privateKey)
 
       const malformedAccessToken = 'aaa.bbb'
 
-      expect(() => tokenService.getSubjectFromAccessToken(malformedAccessToken)).toThrowError('Invalid token structure')
+      expect(() => tokenService.extractPayload(malformedAccessToken)).toThrowError('Invalid token structure')
+    })
+
+    it('returns payload', async () => {
+      const now = new Date()
+      const tokenService = new TokenService('foo issuer', ['example.com'], 'SHA256', publicKey, privateKey)
+      const { accessToken } = await tokenService.issueAccessToken('foo subj')
+
+      const payload = tokenService.extractPayload(accessToken)
+
+      expect(Object.keys(payload)).toStrictEqual(['iss', 'aud', 'sub', 'exp', 'nbf', 'iat'])
+      expect(payload.iss).toBe('foo issuer')
+      expect(payload.aud).toEqual(['example.com'])
+      expect(payload.sub).toBe('foo subj')
+      expect(isDateEqual(new Date(payload.exp), add(now, { minutes: 15 }))).toBe(true)
+      expect(isDateEqual(new Date(payload.nbf), now)).toBe(true)
+      expect(isDateEqual(new Date(payload.iat), now)).toBe(true)
+    })
+  })
+
+  describe('.extractSubject', () => {
+    it('ensures token has three period-delimited parts', async () => {
+      const tokenService = new TokenService('foo issuer', ['example.com'], 'SHA256', publicKey, privateKey)
+
+      const malformedAccessToken = 'aaa.bbb'
+
+      expect(() => tokenService.extractSubject(malformedAccessToken)).toThrowError('Invalid token structure')
     })
 
     it('returns subject', async () => {
@@ -133,7 +154,7 @@ describe('TokenService', () => {
 
       const { accessToken } = await tokenService.issueAccessToken('foo subj')
 
-      expect(tokenService.getSubjectFromAccessToken(accessToken)).toBe('foo subj')
+      expect(tokenService.extractSubject(accessToken)).toBe('foo subj')
     })
   })
 })

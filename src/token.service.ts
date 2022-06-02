@@ -1,6 +1,8 @@
-import crypto, { type KeyObject } from 'crypto'
 import base64url from 'base64url'
 import { add, isAfter } from 'date-fns'
+import crypto, { type KeyObject } from 'crypto'
+
+import { AccessTokenPayload } from './access-token.model'
 
 export const DELIMITER = '.'
 
@@ -76,7 +78,7 @@ export class TokenService {
     )
   }
 
-  getSubjectFromAccessToken(accessToken: string): string {
+  extractPayload(accessToken: string): AccessTokenPayload {
     const tokenParts = accessToken.split(DELIMITER)
 
     const isValidTokenStructure = tokenParts.length === 3
@@ -84,9 +86,20 @@ export class TokenService {
       throw new Error('Invalid token structure')
     }
 
-    const payload = tokenParts[1]
-    const { sub } = JSON.parse(base64url.toBuffer(payload).toString())
+    const stringifiedPayload = tokenParts[1]
+    const { nbf, iat, ...rest } = JSON.parse(
+      base64url.toBuffer(stringifiedPayload).toString()
+    )
 
+    return {
+      ...rest,
+      nbf: new Date(nbf),
+      iat: new Date(iat),
+    }
+  }
+
+  extractSubject(accessToken: string): string {
+    const { sub } = this.extractPayload(accessToken)
     return sub
   }
 }
