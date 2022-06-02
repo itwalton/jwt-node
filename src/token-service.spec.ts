@@ -7,7 +7,7 @@ import {
   sub,
 } from 'date-fns'
 
-import { TokenService } from './token.service'
+import { DELIMITER, TokenService } from './token.service'
 
 describe('TokenService', () => {
   let publicKey: Buffer
@@ -25,7 +25,7 @@ describe('TokenService', () => {
 
       const { accessToken } = await tokenService.issueAccessToken('foo subj')
 
-      const accessTokenParts = accessToken.split('.')
+      const accessTokenParts = accessToken.split(DELIMITER)
       expect(accessTokenParts).toHaveLength(3)
       expect(accessTokenParts.every((part) => typeof part === 'string')).toBe(true)
     })
@@ -35,7 +35,7 @@ describe('TokenService', () => {
 
       const { accessToken } = await tokenService.issueAccessToken('foo subj')
 
-      const header = JSON.parse(base64url.decode(accessToken.split('.')[0]))
+      const header = JSON.parse(base64url.decode(accessToken.split(DELIMITER)[0]))
       expect(header).toEqual({
         typ: 'JWT',
         alg: 'RS256',
@@ -47,7 +47,7 @@ describe('TokenService', () => {
 
       const { accessToken } = await tokenService.issueAccessToken('foo subj')
 
-      const payload = JSON.parse(base64url.decode(accessToken.split('.')[1]))
+      const payload = JSON.parse(base64url.decode(accessToken.split(DELIMITER)[1]))
       expect(payload.iss).toBe('foo issuer')
       expect(payload.aud).toEqual(['example.com'])
       expect(payload.sub).toBe('foo subj')
@@ -72,7 +72,7 @@ describe('TokenService', () => {
 
       const { accessToken, expiresOn } = await tokenService.issueAccessToken('foo subj', customExpiresOn)
 
-      const payload = JSON.parse(base64url.decode(accessToken.split('.')[1]))
+      const payload = JSON.parse(base64url.decode(accessToken.split(DELIMITER)[1]))
       expect(customExpiresOn).toBe(expiresOn)
       expect(payload.exp).toBe(customExpiresOn.getTime())
     })
@@ -82,7 +82,7 @@ describe('TokenService', () => {
 
       const { accessToken } = await tokenService.issueAccessToken('foo subj')
 
-      const [, payload, signature] = accessToken.split('.').map(base64url.toBuffer)
+      const [, payload, signature] = accessToken.split(DELIMITER).map(base64url.toBuffer)
       expect(
         crypto.verify(
           'SHA256',

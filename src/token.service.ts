@@ -2,7 +2,7 @@ import crypto, { type KeyObject } from 'crypto'
 import base64url from 'base64url'
 import { add, isAfter } from 'date-fns'
 
-const DELIMITER = '.'
+export const DELIMITER = '.'
 
 export class TokenService {
   private readonly publicKey: KeyObject

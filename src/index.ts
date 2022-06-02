@@ -1,1 +1,1 @@
-export { TokenService } from './token.service'
+export { DELIMITER, TokenService } from './token.service'
