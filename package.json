@@ -29,19 +29,16 @@
   "dependencies": {
     "base64url": "^3.0.1",
     "date-fns": "^2.28.0",
-    "lodash": "^4.17.21",
     "moment": "^2.29.1"
   },
   "devDependencies": {
     "@types/base64url": "^2.0.0",
     "@types/jest": "^27.0.1",
-    "@types/lodash": "^4.14.173",
     "@typescript-eslint/eslint-plugin": "^5.27.0",
     "@typescript-eslint/parser": "^5.27.0",
     "concurrently": "^6.2.1",
     "eslint": "^8.16.0",
     "eslint-config-prettier": "^8.5.0",
-    "eslint-plugin-lodash": "^7.3.0",
     "eslint-plugin-prettier": "^4.0.0",
     "eslint-plugin-security": "^1.4.0",
     "husky": "^6.0.0",

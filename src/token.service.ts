@@ -1,7 +1,6 @@
 import crypto, { type KeyObject } from 'crypto'
 import base64url from 'base64url'
 import { add, isAfter } from 'date-fns'
-import { isEqual, pipe, split, join, map, size } from 'lodash/fp'
 
 const DELIMITER = '.'
 
@@ -49,18 +48,16 @@ export class TokenService {
 
     return {
       expiresOn,
-      accessToken: pipe(
-        map(base64url.encode),
-        join(DELIMITER)
-      )([header, payload, signature]),
+      accessToken: [header, payload, signature]
+        .map((part) => base64url.encode(part))
+        .join(DELIMITER),
     }
   }
 
   async validateAccessToken(accessToken: string): Promise<boolean> {
-    const [, payloadBuffer, signatureBuffer] = pipe(
-      split(DELIMITER),
-      map(base64url.toBuffer)
-    )(accessToken)
+    const [, payloadBuffer, signatureBuffer] = accessToken
+      .split(DELIMITER)
+      .map(base64url.toBuffer)
 
     const { exp } = JSON.parse(payloadBuffer.toString()) as { exp: number }
     const isTokenWithinExpirationWindow = isAfter(exp, new Date())
@@ -80,9 +77,9 @@ export class TokenService {
   }
 
   getSubjectFromAccessToken(accessToken: string): string {
-    const tokenParts = split(DELIMITER, accessToken)
+    const tokenParts = accessToken.split(DELIMITER)
 
-    const isValidTokenStructure = pipe(size, isEqual(3))(tokenParts)
+    const isValidTokenStructure = tokenParts.length === 3
     if (!isValidTokenStructure) {
       throw new Error('Invalid token structure')
     }
