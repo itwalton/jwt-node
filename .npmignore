@@ -1,1 +1,14 @@
+.vscode/
+
 src/
+tsconfig.json
+
+.github/
+.husky/
+.prettierrc
+.eslintrc.json
+.markdownlint.json
+.markdownlintignore
+
+jest.config.js
+coverage/
